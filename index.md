@@ -16,9 +16,9 @@ With special thanks to
 - Tim Davis (Texas A&M) for GraphBLAS library support in SuiteSparse and 
 - Michel Pelletier (Graphegon) for creation of pygraphblas.
 
-### Schedule (CDT, UTC-5)
+### Schedule 
 
-| Time                   | Description             |
+| Time  (CDT, UTC-5)     | Description             |
 | ---------------------- | ----------------------- |
 | 8:30 AM to 10:00 AM    | Block 1: Introduction and Initial Concepts |
 | 10:00 AM to 10:30 AM   | BREAK |
