@@ -1,1 +1,1 @@
-docker build -t graphblas/pygraphblas-siam21-tutorial .
+docker build -t graphblas/pygraphblas-ics21-tutorial .
