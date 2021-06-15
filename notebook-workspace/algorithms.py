@@ -17,11 +17,14 @@ def neighborhood(graph, src, num_hops):
 
 #==========================================================================
 def pagerank(A, damping = 0.85, itermax = 100):
-    d = A.reduce_vector(grb.types.FP32.PLUS_MONOID)
-
     n = A.nrows
+
     r = grb.Vector.sparse(grb.types.FP32, n)
     t = grb.Vector.sparse(grb.types.FP32, n)
+    d = grb.Vector.sparse(grb.types.FP32, n)
+
+    A.reduce_vector(out=d, mon=grb.types.FP32.PLUS_MONOID)
+
     d.assign_scalar(damping, accum=grb.types.FP32.DIV)
     r[:] = 1.0 / n
     teleport = (1 - damping) / n
@@ -43,3 +46,21 @@ def pagerank(A, damping = 0.85, itermax = 100):
         if rdiff <= tol:
             break
     return r
+
+#==========================================================================
+def triangle_count(A):
+    # Make sure A is symmetric, unweighted, with no self loops
+
+    # Make unweighted
+    A_unw = A.pattern(typ = grb.UINT64)
+
+    # remove self loops (if any)
+    A_nl = A_unw.offdiag()
+
+    # make sure of symmetry
+    A_nl.eadd(A_nl, add_op=grb.types.UINT64.LOR, desc=grb.descriptor.T1, out=A_nl)
+
+    # count triangles
+    C = A_nl.mxm(A_nl, semiring=grb.types.UINT64.PLUS_TIMES, mask=A_nl)
+    count = C.reduce_int(grb.types.UINT64.PLUS_MONOID)
+    return (int)(count/6.0)
