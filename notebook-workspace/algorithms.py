@@ -16,24 +16,21 @@ def neighborhood(graph, src, num_hops):
     return v
 
 #==========================================================================
-def pagerank(A, damping = 0.85, itermax = 100):
+def pagerank(A, damping = 0.85, tol = 1e-4, itermax = 100):
     n = A.nrows
 
-    r = grb.Vector.sparse(grb.types.FP32, n)
-    t = grb.Vector.sparse(grb.types.FP32, n)
-    d = grb.Vector.sparse(grb.types.FP32, n)
+    r = grb.Vector.dense(grb.types.FP32, n, fill=1.0/n)
+    t = grb.Vector.dense(grb.types.FP32, n)
+    d = grb.Vector.dense(grb.types.FP32, n, fill=damping)
 
-    A.reduce_vector(out=d, mon=grb.types.FP32.PLUS_MONOID)
+    A.reduce_vector(out=d, accum=grb.types.FP32.DIV,
+                    mon=grb.types.FP32.PLUS_MONOID)
 
-    d.assign_scalar(damping, accum=grb.types.FP32.DIV)
-    r[:] = 1.0 / n
     teleport = (1 - damping) / n
-    tol = 1e-4
-    rdiff = 1.0
+
     for i in range(itermax):
-        # swap t and r
-        temp = t ; t = r ; r = temp
-        w = t / d
+        t[:] = r[:]
+        w = t * d
         r[:] = teleport
         A.mxv(w,
               out=r,
@@ -42,7 +39,7 @@ def pagerank(A, damping = 0.85, itermax = 100):
               desc=grb.descriptor.T0)
         t -= r
         t.apply(grb.types.FP32.ABS, out=t)
-        rdiff = t.reduce_float()
+        rdiff = t.reduce_float(grb.types.FP32.PLUS_MONOID)
         if rdiff <= tol:
             break
     return r
