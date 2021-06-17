@@ -1,0 +1,6 @@
+Timothy G. Mattson - Intel Corp.
+Scott McMillan     - CMU Software Engineering Institute
+Michel Pelletier   - Graphegon
+Jose Moreira       - IBM Research
+Ben Brock          - UC Berkeley
+Aydin Buluc        - LBNL
