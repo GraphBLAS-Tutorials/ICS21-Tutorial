@@ -3,8 +3,8 @@ import pygraphblas as grb
 #==========================================================================
 def neighborhood(graph, src, num_hops):
     num_nodes = graph.nrows
-    w = grb.Vector.sparse(grb.types.BOOL, num_nodes)
-    v = grb.Vector.sparse(grb.types.BOOL, num_nodes)
+    w = grb.Vector.sparse(grb.BOOL, num_nodes)
+    v = grb.Vector.sparse(grb.BOOL, num_nodes)
     w[src] = True
     v.assign_scalar(True, mask=w)
 
@@ -19,12 +19,12 @@ def neighborhood(graph, src, num_hops):
 def pagerank(A, damping = 0.85, tol = 1e-4, itermax = 100):
     n = A.nrows
 
-    r = grb.Vector.dense(grb.types.FP32, n, fill=1.0/n)
-    t = grb.Vector.dense(grb.types.FP32, n)
-    d = grb.Vector.dense(grb.types.FP32, n, fill=damping)
+    r = grb.Vector.dense(grb.FP32, n, fill=1.0/n)
+    t = grb.Vector.dense(grb.FP32, n)
+    d = grb.Vector.dense(grb.FP32, n, fill=damping)
 
-    A.reduce_vector(out=d, accum=grb.types.FP32.DIV,
-                    mon=grb.types.FP32.PLUS_MONOID)
+    A.reduce_vector(out=d, accum=grb.FP32.DIV,
+                    mon=grb.FP32.PLUS_MONOID)
 
     teleport = (1 - damping) / n
 
@@ -34,12 +34,12 @@ def pagerank(A, damping = 0.85, tol = 1e-4, itermax = 100):
         r[:] = teleport
         A.mxv(w,
               out=r,
-              accum=grb.types.FP32.PLUS,
-              semiring=grb.types.FP32.PLUS_SECOND,
+              accum=grb.FP32.PLUS,
+              semiring=grb.FP32.PLUS_SECOND,
               desc=grb.descriptor.T0)
         t -= r
-        t.apply(grb.types.FP32.ABS, out=t)
-        rdiff = t.reduce_float(grb.types.FP32.PLUS_MONOID)
+        t.apply(grb.FP32.ABS, out=t)
+        rdiff = t.reduce_float(grb.FP32.PLUS_MONOID)
         if rdiff <= tol:
             break
     return r
@@ -55,9 +55,9 @@ def triangle_count(A):
     A_nl = A_unw.offdiag()
 
     # make sure of symmetry
-    A_nl.eadd(A_nl, add_op=grb.types.UINT64.LOR, desc=grb.descriptor.T1, out=A_nl)
+    A_nl.eadd(A_nl, add_op=grb.UINT64.LOR, desc=grb.descriptor.T1, out=A_nl)
 
     # count triangles
-    C = A_nl.mxm(A_nl, semiring=grb.types.UINT64.PLUS_TIMES, mask=A_nl)
-    count = C.reduce_int(grb.types.UINT64.PLUS_MONOID)
+    C = A_nl.mxm(A_nl, semiring=grb.UINT64.PLUS_TIMES, mask=A_nl)
+    count = C.reduce_int(grb.UINT64.PLUS_MONOID)
     return (int)(count/6.0)
